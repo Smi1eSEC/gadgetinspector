@@ -11,11 +11,8 @@ import gadgetinspector.data.InheritanceMap;
 import gadgetinspector.data.MethodReference;
 import gadgetinspector.data.MethodReference.Handle;
 import gadgetinspector.data.Source;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,6 +43,8 @@ public class GadgetChainDiscovery {
   }
 
   private static List<CustomSlink> customSlinks = new ArrayList<>();
+  private static List<List> duplicatRemove = new ArrayList<>();
+  private static int num;
 
   static {
     if (!ConfigHelper.slinksFile.isEmpty()) {
@@ -296,9 +295,9 @@ public class GadgetChainDiscovery {
               Paths.get("gadget-result/gadget-chains-" + simpleDateFormat.format(new Date())
                   + ".txt"));
           Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
-        if (pathList != null) {
-          writer.write("Using classpath: " + Arrays.toString(pathList.toArray()) + "\n");
-        }
+//        if (pathList != null) {
+//          writer.write("Using classpath: " + Arrays.toString(pathList.toArray()) + "\n");
+//        }
         for (GadgetChain chain : treeSets) {
 
           printGadgetChain(writer, chain);
@@ -306,10 +305,27 @@ public class GadgetChainDiscovery {
       }
     }
 
-    LOGGER.info("Found {} gadget chains.", treeSets.size());
+    LOGGER.info("Found {} gadget chains.", num);
   }
 
   private static void printGadgetChain(Writer writer, GadgetChain chain) throws IOException {
+    List<GadgetChainLink> chainLinks = new ArrayList<>();
+    for (int i = 1; i < chain.links.size(); i++) {
+      for (int j = 1; j < ConfigHelper.skipClass.size(); j++) {
+        if (chain.links.get(i).method.getClassReference().getName().contains(ConfigHelper.skipClass.get(j))) {
+          return;
+        }
+      }
+      GadgetChainLink reciprocalNode= chain.links.get(i);
+      chainLinks.add(reciprocalNode);
+    }
+
+    if (duplicatRemove.contains(chainLinks)) {
+      return;
+    } else {
+      num+=1;
+      duplicatRemove.add(chainLinks);
+    }
     writer.write(String.format("%s.%s%s (%d)%n",
         chain.links.get(0).method.getClassReference().getName(),
         chain.links.get(0).method.getName(),

@@ -2,12 +2,8 @@ package gadgetinspector;
 
 import gadgetinspector.config.ConfigRepository;
 import gadgetinspector.config.GIConfig;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -57,6 +53,34 @@ public class GadgetInspector {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void readFileByLines(String fileName) {
+        File file = new File(fileName);
+        BufferedReader reader = null;
+        try {
+            System.out.println("以行为单位读取文件内容，一次读一整行：");
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            int line = 1;
+            // 一次读入一行，直到读入null为文件结束
+            while ((tempString = reader.readLine()) != null) {
+                // 显示行号
+//                System.out.println("line " + line + ": " + tempString);
+                ConfigHelper.skipClass.add(tempString);
+                line++;
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
         }
     }
 
@@ -144,6 +168,9 @@ public class GadgetInspector {
             } else if (arg.equals("--skipSourcesFile")) {
                 //跳过的sources
                 ConfigHelper.skipSourcesFile = args[++argIndex];
+            } else if (arg.equals("--skipclass")) {
+                //跳过的sources
+                readFileByLines(args[++argIndex]);
             } else if (arg.equals("--slinksFile")) {
                 //自定义slinks，每行空格分离三段（
                 // 类 方法名 方法描述，例：java/rmi/registry/Registry lookup (Ljava/lang/String;)Ljava/rmi/Remote;），

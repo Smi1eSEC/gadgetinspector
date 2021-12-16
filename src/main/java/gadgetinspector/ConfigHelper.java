@@ -1,7 +1,10 @@
 package gadgetinspector;
 
 import gadgetinspector.config.GIConfig;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,5 +42,6 @@ public class ConfigHelper {
   public static Set<String> slinks = new HashSet<>();
 
   public static String skipSourcesFile = "";
+  public static List<String> skipClass = new ArrayList();
   public static String slinksFile = "";
 }
