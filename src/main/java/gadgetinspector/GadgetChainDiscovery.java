@@ -312,8 +312,18 @@ public class GadgetChainDiscovery {
     List<GadgetChainLink> chainLinks = new ArrayList<>();
     for (int i = 1; i < chain.links.size(); i++) {
       for (int j = 1; j < ConfigHelper.skipClass.size(); j++) {
-        if (chain.links.get(i).method.getClassReference().getName().contains(ConfigHelper.skipClass.get(j))) {
-          return;
+        String skipClass = ConfigHelper.skipClass.get(j);
+        if (skipClass.contains("#")){
+          String className = skipClass.split("#")[0];
+          String methodName = skipClass.split("#")[1];
+          if (chain.links.get(i).method.getClassReference().getName().contains(className) && chain.links.get(i).method.getName().contains(methodName))
+          {
+            return;
+          }
+        }else {
+          if (chain.links.get(i).method.getClassReference().getName().contains(skipClass)) {
+            return;
+          }
         }
       }
       GadgetChainLink reciprocalNode= chain.links.get(i);
