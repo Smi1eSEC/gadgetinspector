@@ -126,6 +126,7 @@ slink暂时只加入了JdbcTemplate的检测，后续慢慢加入mybatis、原�
 17. --slink JNDI：指定挖掘的slinks，可选JNDI、SSRFAndXXE、EXEC、FileIO、Reflect、BCEL（hessian专用），默认不填挖掘除专用外的所有slinks
 18. --skipSourcesFile /xxx/xxxx/xxx.txt: 跳过哪些经常误报的class source，参考文件fastjson-skip-sources.demo
 19. --slinksFile /xxx/xxxx/xxx.txt: 自定义挖掘的slinks，使用后--slink参数忽略，参考文件fastjson-slinks.demo
+20. --skipclass xx.txt: 结果中经常存在大量重复且无用的链，可以手动指定，生成结果时会自动忽略，com/xxx或者com/xxx#方法名
 
 ## JackOfMostTrades版本https://github.com/JackOfMostTrades/gadgetinspector
 ================
