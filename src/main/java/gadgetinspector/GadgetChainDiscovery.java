@@ -310,8 +310,8 @@ public class GadgetChainDiscovery {
 
   private static void printGadgetChain(Writer writer, GadgetChain chain) throws IOException {
     List<GadgetChainLink> chainLinks = new ArrayList<>();
-    for (int i = 1; i < chain.links.size(); i++) {
-      for (int j = 1; j < ConfigHelper.skipClass.size(); j++) {
+    for (int i = 0; i < chain.links.size(); i++) {
+      for (int j = 0; j < ConfigHelper.skipClass.size(); j++) {
         String skipClass = ConfigHelper.skipClass.get(j);
         if (skipClass.contains("#")){
           String className = skipClass.split("#")[0];
