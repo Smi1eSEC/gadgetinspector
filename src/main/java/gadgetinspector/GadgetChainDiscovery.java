@@ -326,16 +326,17 @@ public class GadgetChainDiscovery {
           }
         }
       }
-      GadgetChainLink reciprocalNode= chain.links.get(i);
-      chainLinks.add(reciprocalNode);
+      // GadgetChainLink reciprocalNode= chain.links.get(i);
+      // chainLinks.add(reciprocalNode);
     }
 
-    if (duplicatRemove.contains(chainLinks)) {
-      return;
-    } else {
-      num+=1;
-      duplicatRemove.add(chainLinks);
-    }
+    // if (duplicatRemove.contains(chainLinks)) {
+    //   return;
+    // } else {
+    //   num+=1;
+    //   duplicatRemove.add(chainLinks);
+    // }
+    num += 1;
     writer.write(String.format("%s.%s%s (%d)%n",
         chain.links.get(0).method.getClassReference().getName(),
         chain.links.get(0).method.getName(),
