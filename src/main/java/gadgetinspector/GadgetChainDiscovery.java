@@ -166,7 +166,8 @@ public class GadgetChainDiscovery {
               .getImplementations(graphCall.getTargetMethod());
 
           //todo gadgetinspector bug 没记录继承父类的方法，导致不可能找到
-          if (allImpls.isEmpty()) {
+          // 不能用allImpls.isEmpty()为判断条件，某些情况下allImpls不为空且同样没有记录继承父类的方法
+          //if (allImpls.isEmpty()) {
             Set<ClassReference.Handle> parents = inheritanceMap.getSuperClasses(graphCall.getTargetMethod().getClassReference());
             if (parents == null)
               continue;
@@ -180,7 +181,7 @@ public class GadgetChainDiscovery {
                 }
               }
             }
-          }
+          //}
 
           for (MethodReference.Handle methodImpl : allImpls) {
             GadgetChainLink newLink = new GadgetChainLink(methodImpl,
