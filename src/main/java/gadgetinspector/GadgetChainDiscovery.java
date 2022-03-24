@@ -575,8 +575,13 @@ public class GadgetChainDiscovery {
 
   private boolean ReflectSlink(Handle method, int argIndex, InheritanceMap inheritanceMap) {
     if (method.getClassReference().getName().equals("java/lang/reflect/Method")
-        && method.getName().equals("invoke") && argIndex == 0) {
-      return true;
+        && method.getName().equals("invoke")) {
+      if (ConfigHelper.taintTrack == false){
+        return true;
+      }
+      if (argIndex == 0) {
+        return true;
+      }
     }
     if (method.getClassReference().getName().equals("java/net/URLClassLoader")
         && method.getName().equals("newInstance")) {
@@ -591,8 +596,13 @@ public class GadgetChainDiscovery {
 
     // Some groovy-specific sinks
     if (method.getClassReference().getName().equals("org/codehaus/groovy/runtime/InvokerHelper")
-        && method.getName().equals("invokeMethod") && argIndex == 1) {
-      return true;
+        && method.getName().equals("invokeMethod")) {
+      if (ConfigHelper.taintTrack == false){
+        return true;
+      }
+      if (argIndex == 1) {
+        return true;
+      }
     }
 
     if (inheritanceMap.isSubclassOf(method.getClassReference(),
@@ -657,12 +667,22 @@ public class GadgetChainDiscovery {
       return true;
     }
     if (method.getClassReference().getName().equals("java/lang/ProcessBuilder")
-        && method.getName().equals("<init>") && argIndex > 0) {
-      return true;
+        && method.getName().equals("<init>")) {
+      if (ConfigHelper.taintTrack == false){
+        return true;
+      }
+      if (argIndex > 0) {
+        return true;
+      }
     }
     if (method.getClassReference().getName().equals("javax/script/ScriptEngine")
-            && method.getName().equals("eval") && argIndex > 0) {
-      return true;
+            && method.getName().equals("eval")) {
+      if (ConfigHelper.taintTrack == false){
+        return true;
+      }
+      if (argIndex > 0) {
+        return true;
+      }
     }
     return false;
   }
@@ -843,26 +863,39 @@ public class GadgetChainDiscovery {
             new ClassReference.Handle("javax/validation/ConstraintValidatorContext")) ||
         inheritanceMap.isSubclassOf(method.getClassReference(),
             new ClassReference.Handle("org/hibernate/validator/internal/engine/constraintvalidation/ConstraintValidatorContextImpl"))) &&
-        argIndex == 1 &&
         method.getName().equals("buildConstraintViolationWithTemplate")) {
-      return true;
+      if (ConfigHelper.taintTrack == false){
+        return true;
+      }
+      if (argIndex == 1) {
+        return true;
+      }
     }
     if ((inheritanceMap.isSubclassOf(method.getClassReference(),
             new ClassReference.Handle("org/springframework/expression/ExpressionParser")) ||
         inheritanceMap.isSubclassOf(method.getClassReference(),
             new ClassReference.Handle("org/springframework/expression/spel/standard/SpelExpressionParser"))) &&
-        argIndex == 1 &&
         (method.getName().equals("parseExpression") || method.getName().equals("parseRaw"))) {
-      return true;
+      if (ConfigHelper.taintTrack == false){
+        return true;
+      }
+      if (argIndex == 1) {
+        return true;
+      }
     }
     if ((inheritanceMap.isSubclassOf(method.getClassReference(),
             new ClassReference.Handle("javax/el/ELProcessor")) &&
-        argIndex == 1 && method.getName().equals("eval"))
+        method.getName().equals("eval"))
         ||
         inheritanceMap.isSubclassOf(method.getClassReference(),
             new ClassReference.Handle("javax/el/ExpressionFactory")) &&
-            argIndex == 2 && method.getName().equals("createValueExpression")) {
-      return true;
+        method.getName().equals("createValueExpression")) {
+      if (ConfigHelper.taintTrack == false){
+        return true;
+      }
+      if (argIndex == 1 || argIndex == 2) {
+        return true;
+      }
     }
     // 20210428
     if ((inheritanceMap.isSubclassOf(method.getClassReference(),
