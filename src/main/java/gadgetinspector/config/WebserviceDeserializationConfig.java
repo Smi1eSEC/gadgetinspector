@@ -22,7 +22,7 @@ public class WebserviceDeserializationConfig implements GIConfig {
     }
 
     @Override
-    public SerializableDecider getSerializableDecider(Map<MethodReference.Handle, MethodReference> methodMap, InheritanceMap inheritanceMap) {
+    public WebserviceSerializableDecider getSerializableDecider(Map<MethodReference.Handle, MethodReference> methodMap, InheritanceMap inheritanceMap) {
         return new WebserviceSerializableDecider(methodMap);
     }
 
