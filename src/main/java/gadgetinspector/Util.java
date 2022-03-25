@@ -115,12 +115,51 @@ public class Util {
     }
 
     public static ClassLoader getJarClassLoader(Path ... jarPaths) throws IOException {
+        //创建临时文件夹，在jvm shutdown自动删除
+        final Path tmpDir = Files.createTempDirectory("exploded-war");
+        // Delete the temp directory at shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                deleteDirectory(tmpDir);
+            } catch (IOException e) {
+                LOGGER.error("Error cleaning up temp directory " + tmpDir.toString(), e);
+            }
+        }));
         final List<URL> classPathUrls = new ArrayList<>(jarPaths.length);
         for (Path jarPath : jarPaths) {
             if (!Files.exists(jarPath) || Files.isDirectory(jarPath)) {
                 throw new IllegalArgumentException("Path \"" + jarPath + "\" is not a path to a file.");
+            } else if (jarPath.getFileName().toString().endsWith(".war")) {
+                // Extract to war to the temp directory
+                Path warPath = jarPath;
+                try (JarInputStream jarInputStream = new JarInputStream(Files.newInputStream(warPath))) {
+                    JarEntry jarEntry;
+                    while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
+                        Path fullPath = tmpDir.resolve(jarEntry.getName());
+                        if (!jarEntry.isDirectory()) {
+                            Path dirName = fullPath.getParent();
+                            if (dirName == null) {
+                                throw new IllegalStateException("Parent of item is outside temp directory.");
+                            }
+                            if (!Files.exists(dirName)) {
+                                Files.createDirectories(dirName);
+                            }
+                            try (OutputStream outputStream = Files.newOutputStream(fullPath)) {
+                                copy(jarInputStream, outputStream);
+                            }
+                        }
+                    }
+                }
             }
             classPathUrls.add(jarPath.toUri().toURL());
+            classPathUrls.add(tmpDir.resolve("WEB-INF/classes").toUri().toURL());
+            Files.list(tmpDir.resolve("WEB-INF/lib")).forEach(p -> {
+                try {
+                    classPathUrls.add(p.toUri().toURL());
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
         URLClassLoader classLoader = new URLClassLoader(classPathUrls.toArray(new URL[classPathUrls.size()]));
         return classLoader;

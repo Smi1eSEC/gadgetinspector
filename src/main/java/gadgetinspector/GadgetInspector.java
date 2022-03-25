@@ -320,7 +320,7 @@ public class GadgetInspector {
                         Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
                             @Override
                             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                                if (file.getFileName().toString().endsWith(".jar")) {
+                                if (file.getFileName().toString().endsWith(".jar") || file.getFileName().toString().endsWith(".war")) {
                                     File readFile = file.toFile();
                                     Path path = Paths.get(readFile.getAbsolutePath());
                                     if (Files.exists(path)) {
