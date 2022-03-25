@@ -152,15 +152,15 @@ public class Util {
                 }
             }
             classPathUrls.add(jarPath.toUri().toURL());
-            classPathUrls.add(tmpDir.resolve("WEB-INF/classes").toUri().toURL());
-            Files.list(tmpDir.resolve("WEB-INF/lib")).forEach(p -> {
-                try {
-                    classPathUrls.add(p.toUri().toURL());
-                } catch (MalformedURLException e) {
-                    throw new RuntimeException(e);
-                }
-            });
         }
+        classPathUrls.add(tmpDir.resolve("WEB-INF/classes").toUri().toURL());
+        Files.list(tmpDir.resolve("WEB-INF/lib")).forEach(p -> {
+            try {
+                classPathUrls.add(p.toUri().toURL());
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        });
         URLClassLoader classLoader = new URLClassLoader(classPathUrls.toArray(new URL[classPathUrls.size()]));
         return classLoader;
     }
