@@ -73,7 +73,7 @@ public class GadgetChainDiscovery {
     }
   }
 
-  public void discover(List<Path> pathList) throws Exception {
+public void discover(List<Path> pathList) throws Exception {
     Map<MethodReference.Handle, MethodReference> methodMap = DataLoader.loadMethods();
     InheritanceMap inheritanceMap = InheritanceMap.load();
     Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplMap = InheritanceDeriver
@@ -157,17 +157,17 @@ public class GadgetChainDiscovery {
               && ConfigHelper.taintTrack) {
             continue;
           }
-          if (graphCall.getCallerMethod().getClassReference().getName().contains("org/controller/XXE")
-                  && graphCall.getCallerMethod().getName().contains("SAXReader")){
-            System.out.println("test by 5wimming");
-          }
+//          if (graphCall.getCallerMethod().getClassReference().getName().contains("org/controller/XXE")
+//                  && graphCall.getCallerMethod().getName().contains("SAXReader")){
+//            System.out.println("test by 5wimming");
+//          }
 
           Set<MethodReference.Handle> allImpls = implementationFinder
               .getImplementations(graphCall.getTargetMethod());
 
           //todo gadgetinspector bug 没记录继承父类的方法，导致不可能找到
           // 不能用allImpls.isEmpty()为判断条件，某些情况下allImpls不为空且同样没有记录继承父类的方法
-          //if (allImpls.isEmpty()) {
+//          if (allImpls.isEmpty()) {
             Set<ClassReference.Handle> parents = inheritanceMap.getSuperClasses(graphCall.getTargetMethod().getClassReference());
             if (parents == null)
               continue;
@@ -181,7 +181,7 @@ public class GadgetChainDiscovery {
                 }
               }
             }
-          //}
+//          }
 
           for (MethodReference.Handle methodImpl : allImpls) {
             GadgetChainLink newLink = new GadgetChainLink(methodImpl,
@@ -242,6 +242,7 @@ public class GadgetChainDiscovery {
       TreeSet<GadgetChain> treeSimilar = new TreeSet<>(new Comparator<GadgetChain>() {
         @Override
         public int compare(GadgetChain o1, GadgetChain o2) {
+          //从小到大排序
           int compareResult = o1.links.size() - o2.links.size();
           if (compareResult == 0){
             return -1;
@@ -251,21 +252,25 @@ public class GadgetChainDiscovery {
         }
       });
       for (GadgetChain chain : discoveredGadgets) {
-        if (chain.links.size() <= ConfigHelper.similarLevel){
-          continue;
-        }
+//        if (chain.links.size() <= ConfigHelper.similarLevel){
+//          continue;
+//        }
         treeSimilar.add(chain);
       }
       if (!treeSimilar.isEmpty()){
         Set<ArrayList<GadgetChainLink>> repeatSim = new HashSet<>();
         for (GadgetChain chain : treeSimilar){
-          ArrayList<GadgetChainLink> temp = new ArrayList<>(chain.links.subList(0,ConfigHelper.similarLevel));
-          temp.add(chain.links.get(chain.links.size()-1));
+          // 如果长度小于3 则取所有节点即前两条链为去重因子，如果大于等于3，则取后两条链为去重因子
+          ArrayList<GadgetChainLink> temp = new ArrayList<>(chain.links.subList(0, chain.links.size()-1));
+          if (chain.links.size() >= 3) {
+            temp = new ArrayList<>(chain.links.subList(chain.links.size()-2, chain.links.size()-1));
+          }
+          //temp.add(chain.links.get(chain.links.size()-1));
           if(repeatSim.contains(temp)){
             discoveredGadgets.remove(chain);
-          }
-          else {
+          } else {
             repeatSim.add(temp);
+
           }
         }
       }
@@ -284,7 +289,6 @@ public class GadgetChainDiscovery {
     });
 
     if (!discoveredGadgets.isEmpty()) {
-
       for (GadgetChain chain : discoveredGadgets) {
         if(!treeSets.contains(chain)){
           treeSets.add(chain);
@@ -299,8 +303,8 @@ public class GadgetChainDiscovery {
 //        if (pathList != null) {
 //          writer.write("Using classpath: " + Arrays.toString(pathList.toArray()) + "\n");
 //        }
-        for (GadgetChain chain : treeSets) {
 
+        for (GadgetChain chain : treeSets) {
           printGadgetChain(writer, chain);
         }
       }
@@ -319,24 +323,26 @@ public class GadgetChainDiscovery {
           String methodName = skipClass.split("#")[1];
           if (chain.links.get(i).method.getClassReference().getName().contains(className) && chain.links.get(i).method.getName().contains(methodName))
           {
+         //   System.out.println(className + "#" +methodName);
+           // System.out.println(chain.links.get(i).method.getClassReference().getName() + "#" + chain.links.get(i).method.getName());
             return;
           }
-        }else {
+        } else {
           if (chain.links.get(i).method.getClassReference().getName().contains(skipClass)) {
+//            System.out.println(skipClass);
             return;
           }
         }
       }
-      // GadgetChainLink reciprocalNode= chain.links.get(i);
-      // chainLinks.add(reciprocalNode);
+//      GadgetChainLink reciprocalNode= chain.links.get(i);
+//      chainLinks.add(reciprocalNode);
     }
-
-    // if (duplicatRemove.contains(chainLinks)) {
-    //   return;
-    // } else {
-    //   num+=1;
-    //   duplicatRemove.add(chainLinks);
-    // }
+//
+//    if (duplicatRemove.contains(chainLinks)) {
+//      return;
+//    } else {
+//      duplicatRemove.add(chainLinks);
+//    }
     num += 1;
     writer.write(String.format("%s.%s%s (%d)%n",
         chain.links.get(0).method.getClassReference().getName(),
@@ -436,7 +442,9 @@ public class GadgetChainDiscovery {
         return true;
       }
     }
-
+    if (ConfigHelper.slinks.isEmpty() && ApacheAntSlink(method, inheritanceMap)){
+      return true;
+    }
     //通用slink，不设定slink则全部都挖掘
     if ((ConfigHelper.slinks.isEmpty() || ConfigHelper.slinks.contains("JNDI")) && JNDISlink(method, inheritanceMap)) {
       return true;
@@ -583,6 +591,12 @@ public class GadgetChainDiscovery {
         return true;
       }
     }
+    if (method.getName().equals("newInstance") && !method.getDesc().contains("()")) {
+      return true;
+    }
+    if (method.getName().equals("setProperty") && method.getClassReference().getName().equals("java/lang/System")) {
+      return true;
+    }
     if (method.getClassReference().getName().equals("java/net/URLClassLoader")
         && method.getName().equals("newInstance")) {
       return true;
@@ -615,12 +629,20 @@ public class GadgetChainDiscovery {
   }
 
   private boolean FileIOSlink(Handle method) {
+    if (method.getClassReference().getName().equals("java/util/zip/ZipFile")
+            && method.getName().equals("<init>")) {
+      return true;
+    }
     if (method.getClassReference().getName().equals("java/io/FileInputStream")
         && method.getName().equals("<init>")) {
       return true;
     }
     if (method.getClassReference().getName().equals("java/io/FileOutputStream")
         && method.getName().equals("<init>")) {
+      return true;
+    }
+        if (method.getClassReference().getName().equals("java/io/FileWriter")
+            && method.getName().equals("<init>")) {
       return true;
     }
     if (method.getClassReference().getName().equals("java/nio/file/Files")
@@ -858,6 +880,16 @@ public class GadgetChainDiscovery {
     return false;
   }
 
+  private boolean ApacheAntSlink(Handle method, InheritanceMap inheritanceMap) {
+    if (method.getClassReference().getName().equals("org/apache/tools/ant/Project")
+            && method.getName().equals("executeTarget")) {
+      return true;
+    }
+    if (inheritanceMap.isSubclassOf(method.getClassReference(),new ClassReference.Handle("org/apache/tools/ant/Project")) && method.getName().equals("executeTarget")){
+      return true;
+    }
+    return false;
+  }
   private boolean ELSlink(Handle method, int argIndex, InheritanceMap inheritanceMap) {
     if ((inheritanceMap.isSubclassOf(method.getClassReference(),
             new ClassReference.Handle("javax/validation/ConstraintValidatorContext")) ||

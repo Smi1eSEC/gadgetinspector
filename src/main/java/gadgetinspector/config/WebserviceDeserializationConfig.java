@@ -28,7 +28,7 @@ public class WebserviceDeserializationConfig implements GIConfig {
 
     @Override
     public ImplementationFinder getImplementationFinder(Map<MethodReference.Handle, MethodReference> methodMap, Map<MethodReference.Handle, Set<MethodReference.Handle>> methodImplMap, InheritanceMap inheritanceMap, Map<ClassReference.Handle, Set<MethodReference.Handle>> methodsByClass) {
-        return new WebserviceImplementationFinder(getSerializableDecider(methodMap, inheritanceMap));
+        return new WebserviceImplementationFinder(getSerializableDecider(methodMap, inheritanceMap), methodImplMap);
     }
 
     @Override
